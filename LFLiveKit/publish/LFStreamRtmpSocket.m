@@ -68,7 +68,7 @@ SAVC(mp4a);
 
 @property (nonatomic, assign) BOOL sendVideoHead;
 @property (nonatomic, assign) BOOL sendAudioHead;
-
+@property (nonatomic, assign) NSUInteger latency;
 @end
 
 @implementation LFStreamRTMPSocket
@@ -89,6 +89,7 @@ SAVC(mp4a);
         else _reconnectCount = RetryTimesBreaken;
         
         [self addObserver:self forKeyPath:@"isSending" options:NSKeyValueObservingOptionNew context:nil];//这里改成observer主要考虑一直到发送出错情况下，可以继续发送
+        self.latency = 30000;
     }
     return self;
 }
@@ -262,7 +263,8 @@ SAVC(mp4a);
     _rtmp->m_userData = (__bridge void *)self;
     _rtmp->m_msgCounter = 1;
     _rtmp->Link.timeout = RTMP_RECEIVE_TIMEOUT;
-    
+    _rtmp->m_nBufferMS = _latency;
+
     //设置可写，即发布流，这个函数必须在连接前使用，否则无效
     PILI_RTMP_EnableWrite(_rtmp);
 

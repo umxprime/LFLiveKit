@@ -113,6 +113,12 @@ typedef NS_ENUM(NSInteger,LFLiveCaptureTypeMask) {
 /** The reconnectCount control reconnect count (重连次数) *.*/
 @property (nonatomic, assign) NSUInteger reconnectCount;
 
+/**
+ * Configure latency in milliseconds.
+ * Defaults to 30000 ms.
+ */
+@property (nonatomic, assign) NSUInteger latency;
+
 /*** The warterMarkView control whether the watermark is displayed or not ,if set ni,will remove watermark,otherwise add. 
  set alpha represent mix.Position relative to outVideoSize.
  *.*/

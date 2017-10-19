@@ -28,6 +28,7 @@
 @end
 
 @protocol LFStreamSocket <NSObject>
+@property (nonatomic, assign) NSUInteger latency;
 - (void)start;
 - (void)stop;
 - (void)sendFrame:(nullable LFFrame *)frame;

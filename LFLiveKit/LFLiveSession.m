@@ -85,6 +85,7 @@
         _videoConfiguration = videoConfiguration;
         _adaptiveBitrate = NO;
         _captureType = captureType;
+        _latency = 30000;
     }
     return self;
 }
@@ -100,6 +101,7 @@
     _streamInfo = streamInfo;
     _streamInfo.videoConfiguration = _videoConfiguration;
     _streamInfo.audioConfiguration = _audioConfiguration;
+    self.socket.latency = self.latency;
     [self.socket start];
 }
 
