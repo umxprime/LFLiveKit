@@ -68,10 +68,10 @@ SAVC(mp4a);
 
 @property (nonatomic, assign) BOOL sendVideoHead;
 @property (nonatomic, assign) BOOL sendAudioHead;
-@property (nonatomic, assign) NSUInteger latency;
 @end
 
 @implementation LFStreamRTMPSocket
+@synthesize latency = _latency;
 
 #pragma mark -- LFStreamSocket
 - (nullable instancetype)initWithStream:(nullable LFLiveStreamInfo *)stream{
