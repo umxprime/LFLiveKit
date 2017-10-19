@@ -1,7 +1,7 @@
 
 Pod::Spec.new do |s|
 
-  s.name         = "LFLiveKit"
+  s.name         = "LFLiveKit-giroptic"
   s.version      = "2.6.1"
   s.summary      = "LaiFeng ios Live. LFLiveKit."
   s.homepage     = "https://github.com/giroptic"
