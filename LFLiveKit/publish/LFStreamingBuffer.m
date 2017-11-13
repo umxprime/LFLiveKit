@@ -202,16 +202,16 @@ NSInteger frameDataCompare(id obj1, id obj2, void *context){
     dispatch_semaphore_wait(_lock, DISPATCH_TIME_FOREVER);
     [self.thresholdList addObject:@(self.list.count)];
     dispatch_semaphore_signal(_lock);
-    
+
     if (self.currentInterval >= self.callBackInterval) {
-        LFLiveBuffferState state = [self currentBufferState];
-        if (state == LFLiveBuffferIncrease) {
+        LFLiveBufferState state = [self currentBufferState];
+        if (state == LFLiveBufferIncrease) {
             if (self.delegate && [self.delegate respondsToSelector:@selector(streamingBuffer:bufferState:)]) {
-                [self.delegate streamingBuffer:self bufferState:LFLiveBuffferIncrease];
+                [self.delegate streamingBuffer:self bufferState:LFLiveBufferIncrease];
             }
-        } else if (state == LFLiveBuffferDecline) {
+        } else if (state == LFLiveBufferDecline) {
             if (self.delegate && [self.delegate respondsToSelector:@selector(streamingBuffer:bufferState:)]) {
-                [self.delegate streamingBuffer:self bufferState:LFLiveBuffferDecline];
+                [self.delegate streamingBuffer:self bufferState:LFLiveBufferDecline];
             }
         }
 
