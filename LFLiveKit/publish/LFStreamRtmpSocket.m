@@ -17,6 +17,7 @@
 static const NSInteger RetryTimesBreaken = 5;  ///<  重连1分钟  3秒一次 一共20次
 static const NSInteger RetryTimesMargin = 3;
 
+NSErrorDomain const kLFStreamRTMPSocketErrorDomain = @"RTMP Stream Socket";
 
 #define RTMP_RECEIVE_TIMEOUT    2
 #define DATA_ITEMS_MAX_COUNT 100
@@ -305,7 +306,13 @@ Failed:
     PILI_RTMP_Close(_rtmp, &_error);
     PILI_RTMP_Free(_rtmp);
     _rtmp = NULL;
-    [self reconnect];
+    NSString *message = [NSString stringWithCString:_error.message
+                                           encoding:NSUTF8StringEncoding];
+    NSError *error =
+        [NSError errorWithDomain:kLFStreamRTMPSocketErrorDomain
+                            code:_error.code
+                        userInfo:@{NSLocalizedDescriptionKey : message}];
+    [self reconnectWithError:error];
     return -1;
 }
 
@@ -495,7 +502,7 @@ Failed:
 }
 
 // 断线重连
-- (void)reconnect {
+- (void)reconnectWithError:(NSError *)error {
     dispatch_async(self.rtmpSendQueue, ^{
         if (self.retryTimes4netWorkBreaken++ < self.reconnectCount && !self.isReconnecting) {
             self.isConnected = NO;
@@ -509,8 +516,17 @@ Failed:
             if (self.delegate && [self.delegate respondsToSelector:@selector(socketStatus:status:)]) {
                 [self.delegate socketStatus:self status:LFLiveError];
             }
-            if (self.delegate && [self.delegate respondsToSelector:@selector(socketDidError:errorCode:)]) {
-                [self.delegate socketDidError:self errorCode:LFLiveSocketError_ReConnectTimeOut];
+            if ([self.delegate
+                    respondsToSelector:@selector(socket:didFailWithError:)]) {
+              NSDictionary *const userInfos = @{
+                NSLocalizedDescriptionKey : @"Connection retry timed out.",
+                NSUnderlyingErrorKey : error ? error : [[NSError alloc] init]
+              };
+              NSError *reconnectError =
+                  [NSError errorWithDomain:kLFStreamRTMPSocketErrorDomain
+                                      code:LFLiveSocketError_ReConnectTimeOut
+                                  userInfo:userInfos];
+              [self.delegate socket:self didFailWithError:reconnectError];
             }
         }
     });
@@ -544,11 +560,19 @@ Failed:
 }
 
 #pragma mark -- CallBack
-void RTMPErrorCallback(RTMPError *error, void *userData) {
-    LFStreamRTMPSocket *socket = (__bridge LFStreamRTMPSocket *)userData;
-    if (error->code < 0) {
-        [socket reconnect];
-    }
+void RTMPErrorCallback(RTMPError *rtmpError, void *userData) {
+  LFStreamRTMPSocket *socket = (__bridge LFStreamRTMPSocket *)userData;
+  if (rtmpError->code < 0) {
+    NSString *const description =
+        rtmpError->message ? [NSString stringWithCString:rtmpError->message
+                                                encoding:NSUTF8StringEncoding]
+                           : @"";
+    NSError *error =
+        [NSError errorWithDomain:kLFStreamRTMPSocketErrorDomain
+                            code:rtmpError->code
+                        userInfo:@{NSLocalizedDescriptionKey : description}];
+    [socket reconnectWithError:error];
+  }
 }
 
 void ConnectionTimeCallback(PILI_CONNECTION_TIME *conn_time, void *userData) {

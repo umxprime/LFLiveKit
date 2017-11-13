@@ -192,10 +192,10 @@
     });
 }
 
-- (void)socketDidError:(nullable id<LFStreamSocket>)socket errorCode:(LFLiveSocketErrorCode)errorCode {
+- (void)socket:(nullable id<LFStreamSocket>)socket didFailWithError:(NSError *)error {
     dispatch_async(dispatch_get_main_queue(), ^{
-        if (self.delegate && [self.delegate respondsToSelector:@selector(liveSession:errorCode:)]) {
-            [self.delegate liveSession:self errorCode:errorCode];
+        if (self.delegate && [self.delegate respondsToSelector:@selector(liveSession:didFailWithError:)]) {
+          [self.delegate liveSession:self didFailWithError:error];
         }
     });
 }

@@ -21,7 +21,7 @@
 /** callback socket current status (回调当前网络情况) */
 - (void)socketStatus:(nullable id <LFStreamSocket>)socket status:(LFLiveState)status;
 /** callback socket errorcode */
-- (void)socketDidError:(nullable id <LFStreamSocket>)socket errorCode:(LFLiveSocketErrorCode)errorCode;
+- (void)socket:(nullable id<LFStreamSocket>)socket didFailWithError:(NSError *)error;
 @optional
 /** callback debugInfo */
 - (void)socketDebug:(nullable id <LFStreamSocket>)socket debugInfo:(nullable LFLiveDebug *)debugInfo;
