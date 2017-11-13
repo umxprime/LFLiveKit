@@ -68,6 +68,7 @@ SAVC(mp4a);
 
 @property (nonatomic, assign) BOOL sendVideoHead;
 @property (nonatomic, assign) BOOL sendAudioHead;
+@property(nonatomic) BOOL shouldFlushBuffer;
 @end
 
 @implementation LFStreamRTMPSocket
@@ -153,6 +154,12 @@ SAVC(mp4a);
     }
 }
 
+- (void)flushBuffer {
+  @synchronized (self) {
+    self.shouldFlushBuffer = YES;
+  }
+}
+
 - (void)setDelegate:(id<LFStreamSocketDelegate>)delegate {
     _delegate = delegate;
 }
@@ -161,6 +168,10 @@ SAVC(mp4a);
 - (void)sendFrame {
     __weak typeof(self) _self = self;
      dispatch_async(self.rtmpSendQueue, ^{
+       if(_self.shouldFlushBuffer) {
+         _self.shouldFlushBuffer = NO;
+         [_self.buffer removeAllObject];
+       }
         if (!_self.isSending && _self.buffer.list.count > 0) {
             _self.isSending = YES;
 

@@ -124,6 +124,11 @@
     }
 }
 
+- (void)flushBuffer {
+    [self.socket flushBuffer];
+}
+
+
 - (void)pushAudio:(nullable NSData*)audioData{
     if(self.captureType & LFLiveInputMaskAudio){
         if (self.uploading) [self.audioEncoder encodeAudioData:audioData timeStamp:NOW];

@@ -175,5 +175,10 @@ typedef NS_ENUM(NSInteger,LFLiveCaptureTypeMask) {
  * @param frame
  */
 - (void)pushVideoFrame:(LFVideoFrame *)frame;
+
+/**
+ * Force whole buffer flush.
+ */
+- (void)flushBuffer;
 @end
 
