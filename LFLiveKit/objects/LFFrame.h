@@ -14,5 +14,5 @@
 @property (nonatomic, strong) NSData *data;
 ///< flv或者rtmp包头
 @property (nonatomic, strong) NSData *header;
-
+- (NSUInteger)size;
 @end

@@ -9,5 +9,8 @@
 #import "LFAudioFrame.h"
 
 @implementation LFAudioFrame
+- (NSUInteger)size {
+  return [super size] + self.audioInfo.length;
+}
 
 @end

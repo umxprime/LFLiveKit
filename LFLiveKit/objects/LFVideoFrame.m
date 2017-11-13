@@ -9,5 +9,8 @@
 #import "LFVideoFrame.h"
 
 @implementation LFVideoFrame
+- (NSUInteger)size {
+  return [super size] + self.sps.length + self.pps.length;
+}
 
 @end

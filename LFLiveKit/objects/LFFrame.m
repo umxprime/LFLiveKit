@@ -10,4 +10,9 @@
 
 @implementation LFFrame
 
+- (NSUInteger)size {
+  return self.data.length + self.header.length;
+}
+
+
 @end
