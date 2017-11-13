@@ -9,7 +9,7 @@ Pod::Spec.new do |s|
   s.author       = { "GIROPTIC" => "contact@giroptic.com", "chenliming" => "chenliming777@qq.com" }
   s.platform     = :ios, "7.0"
   s.ios.deployment_target = "7.0"
-  s.source       = { :git => "https://github.com/giroptic/LFLiveKit.git", :tag => "#{s.version}" }
+  s.source       = { :git => "https://github.com/umxprime/LFLiveKit.git", :tag => "#{s.version}" }
   s.source_files  = "LFLiveKit/**/*.{h,m,mm,cpp,c}"
   s.public_header_files = ['LFLiveKit/*.h', 'LFLiveKit/objects/*.h', 'LFLiveKit/configuration/*.h']
 
