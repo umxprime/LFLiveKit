@@ -191,6 +191,7 @@ SAVC(mp4a);
                         return;
                     }
                     [_self sendVideoHeader:(LFVideoFrame *)frame];
+                    [_self sendVideo:(LFVideoFrame *)frame];
                 } else {
                     [_self sendVideo:(LFVideoFrame *)frame];
                 }
@@ -202,6 +203,7 @@ SAVC(mp4a);
                         return;
                     }
                     [_self sendAudioHeader:(LFAudioFrame *)frame];
+                    [_self sendAudio:frame];
                 } else {
                     [_self sendAudio:frame];
                 }
