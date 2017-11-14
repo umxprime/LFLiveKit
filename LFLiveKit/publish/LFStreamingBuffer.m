@@ -147,7 +147,7 @@ NSInteger frameDataCompare(id obj1, id obj2, void *context){
     return NSOrderedAscending;
 }
 
-- (LFLiveBuffferState)currentBufferState {
+- (LFLiveBufferState)currentBufferState {
     NSInteger currentCount = 0;
     NSInteger increaseCount = 0;
     NSInteger decreaseCount = 0;
@@ -162,14 +162,14 @@ NSInteger frameDataCompare(id obj1, id obj2, void *context){
     }
 
     if (increaseCount >= self.callBackInterval) {
-        return LFLiveBuffferIncrease;
+        return LFLiveBufferIncrease;
     }
 
     if (decreaseCount >= self.callBackInterval) {
-        return LFLiveBuffferDecline;
+        return LFLiveBufferDecline;
     }
     
-    return LFLiveBuffferUnknown;
+    return LFLiveBufferUnknown;
 }
 
 #pragma mark -- Setter Getter
