@@ -12,6 +12,7 @@
 #import <pili-librtmp/rtmp.h>
 #else
 #import "rtmp.h"
+#import "LFLiveKit.h"
 #endif
 
 static const NSInteger RetryTimesBreaken = 5;  ///<  重连1分钟  3秒一次 一共20次
@@ -70,10 +71,16 @@ SAVC(mp4a);
 @property (nonatomic, assign) BOOL sendVideoHead;
 @property (nonatomic, assign) BOOL sendAudioHead;
 @property(nonatomic) BOOL shouldFlushBuffer;
+@property(nonatomic, strong)
+    LFLiveStreamDataDeliverySample *dataDeliverySample;
+@property(nonatomic) CFTimeInterval lastStreamDataUpdateTS;
+@property(nonatomic, strong) NSTimer *liveStreamDataDeliveryUpdateTimer;
 @end
 
 @implementation LFStreamRTMPSocket
-@synthesize latency = _latency;
+@synthesize latency = _latency,
+            dataDeliverySampleUpdateBlock = _bufferInfosUpdateBlock,
+            streamDataDeliveryUpdateInterval = _liveStreamDataDeliveryInterval;
 
 #pragma mark -- LFStreamSocket
 - (nullable instancetype)initWithStream:(nullable LFLiveStreamInfo *)stream{
@@ -104,6 +111,25 @@ SAVC(mp4a);
     dispatch_async(self.rtmpSendQueue, ^{
         [self _start];
     });
+    self.lastStreamDataUpdateTS = 0;
+    [self.liveStreamDataDeliveryUpdateTimer invalidate];
+    self.liveStreamDataDeliveryUpdateTimer = [NSTimer
+        scheduledTimerWithTimeInterval:self.streamDataDeliveryUpdateInterval
+                                target:self
+                              selector:@selector(streamDataDeliveryUpdate:)
+                              userInfo:nil
+                               repeats:YES];
+}
+
+- (void)streamDataDeliveryUpdate:(NSTimer *)timer {
+  if (self.dataDeliverySampleUpdateBlock) {
+    @synchronized(self.dataDeliverySample) {
+        if (self.dataDeliverySample) {
+            self.dataDeliverySampleUpdateBlock([self.dataDeliverySample copy]);
+        }
+        self.dataDeliverySample = nil;
+    }
+  }
 }
 
 - (void)_start {
@@ -128,6 +154,10 @@ SAVC(mp4a);
 }
 
 - (void)stop {
+    [self.liveStreamDataDeliveryUpdateTimer invalidate];
+    @synchronized (self.dataDeliverySample) {
+      self.dataDeliverySample = nil;
+    }
     dispatch_async(self.rtmpSendQueue, ^{
         [self _stop];
         [NSObject cancelPreviousPerformRequestsWithTarget:self];
@@ -190,6 +220,8 @@ SAVC(mp4a);
                         _self.isSending = NO;
                         return;
                     }
+
+                    _self.lastStreamDataUpdateTS = CACurrentMediaTime();
                     [_self sendVideoHeader:(LFVideoFrame *)frame];
                     [_self sendVideo:(LFVideoFrame *)frame];
                 } else {
@@ -207,6 +239,23 @@ SAVC(mp4a);
                 } else {
                     [_self sendAudio:frame];
                 }
+            }
+
+            if (_self.dataDeliverySampleUpdateBlock &&
+                [frame isKindOfClass:[LFVideoFrame class]]) {
+              @synchronized(self.dataDeliverySample) {
+                if (!self.dataDeliverySample) {
+                  self.dataDeliverySample =
+                      [LFLiveStreamDataDeliverySample new];
+                }
+                self.dataDeliverySample.videoBytesSent += frame.size;
+                self.dataDeliverySample.pendingBytes = _self.buffer.size;
+                  if (self.lastStreamDataUpdateTS != 0) {
+                      self.dataDeliverySample.timeInterval +=
+                        CACurrentMediaTime() - self.lastStreamDataUpdateTS;
+                  }
+                  self.lastStreamDataUpdateTS = CACurrentMediaTime();
+              }
             }
 
             //debug更新

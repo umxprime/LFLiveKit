@@ -19,7 +19,7 @@ static const NSUInteger defaultSendBufferMaxCount = 600;///< 最大缓冲区为6
 }
 
 @property (nonatomic, strong) NSMutableArray <LFFrame *> *sortList;
-@property (nonatomic, strong, readwrite) NSMutableArray <LFFrame *> *list;
+@property (nonatomic, strong, readwrite) NSMutableArray <LFFrame *> *mutableList;
 @property (nonatomic, strong) NSMutableArray *thresholdList;
 
 /** 处理buffer缓冲区情况 */
@@ -49,42 +49,74 @@ static const NSUInteger defaultSendBufferMaxCount = 600;///< 最大缓冲区为6
 }
 
 #pragma mark -- Custom
+
+- (NSArray <LFFrame *> *_Nonnull)list {
+  NSArray *list;
+  @synchronized(self.mutableList) {
+    list = [self.mutableList copy];
+  }
+  return list;
+}
+
 - (void)appendObject:(LFFrame *)frame {
-    if (!frame) return;
-    if (!_startTimer) {
-        _startTimer = YES;
-        [self tick];
-    }
+  if (!frame)
+    return;
+  if (!_startTimer) {
+    _startTimer = YES;
+    [self tick];
+  }
 
-    dispatch_semaphore_wait(_lock, DISPATCH_TIME_FOREVER);
-    if (self.sortList.count < defaultSortBufferMaxCount) {
-        [self.sortList addObject:frame];
-    } else {
-        ///< 排序
-        [self.sortList addObject:frame];
-		[self.sortList sortUsingFunction:frameDataCompare context:nil];
-        /// 丢帧
-        [self removeExpireFrame];
-        /// 添加至缓冲区
-        LFFrame *firstFrame = [self.sortList lfPopFirstObject];
+  dispatch_semaphore_wait(_lock, DISPATCH_TIME_FOREVER);
+  if (self.sortList.count < defaultSortBufferMaxCount) {
+    [self.sortList addObject:frame];
+  } else {
+    ///< 排序
+    [self.sortList addObject:frame];
+    [self.sortList sortUsingFunction:frameDataCompare context:nil];
+    /// 丢帧
+    [self removeExpireFrame];
+    /// 添加至缓冲区
+    LFFrame *firstFrame = [self.sortList lfPopFirstObject];
 
-        if (firstFrame) [self.list addObject:firstFrame];
-    }
-    dispatch_semaphore_signal(_lock);
+    if (firstFrame)
+      @synchronized(self.mutableList) {
+        [self.mutableList addObject:firstFrame];
+      }
+  }
+  dispatch_semaphore_signal(_lock);
 }
 
 - (LFFrame *)popFirstObject {
-    dispatch_semaphore_wait(_lock, DISPATCH_TIME_FOREVER);
-    LFFrame *firstFrame = [self.list lfPopFirstObject];
-    dispatch_semaphore_signal(_lock);
-    return firstFrame;
+  dispatch_semaphore_wait(_lock, DISPATCH_TIME_FOREVER);
+  LFFrame *firstFrame;
+  @synchronized (self.mutableList) {
+    firstFrame = [self.mutableList lfPopFirstObject];
+  }
+  dispatch_semaphore_signal(_lock);
+  return firstFrame;
 }
 
 - (void)removeAllObject {
-    dispatch_semaphore_wait(_lock, DISPATCH_TIME_FOREVER);
-    [self.list removeAllObjects];
-    dispatch_semaphore_signal(_lock);
+  dispatch_semaphore_wait(_lock, DISPATCH_TIME_FOREVER);
+  [self.sortList removeAllObjects];
+  @synchronized (self.mutableList) {
+    [self.mutableList removeAllObjects];
+  }
+  dispatch_semaphore_signal(_lock);
 }
+
+- (NSUInteger)size {
+  dispatch_semaphore_wait(_lock, DISPATCH_TIME_FOREVER);
+  __block NSUInteger size = 0;
+  [self.list enumerateObjectsUsingBlock:^(LFFrame *item,
+                                          NSUInteger idx,
+                                          BOOL *stop) {
+    size += item.size;
+  }];
+  dispatch_semaphore_signal(_lock);
+  return size;
+}
+
 
 - (void)removeExpireFrame {
     if (self.list.count < self.maxCount) return;
@@ -92,18 +124,24 @@ static const NSUInteger defaultSendBufferMaxCount = 600;///< 最大缓冲区为6
     NSArray *pFrames = [self expirePFrames];///< 第一个P到第一个I之间的p帧
     self.lastDropFrames += [pFrames count];
     if (pFrames && pFrames.count > 0) {
-        [self.list removeObjectsInArray:pFrames];
+        @synchronized (self.mutableList) {
+          [self.mutableList removeObjectsInArray:pFrames];
+        }
         return;
     }
-    
+
     NSArray *iFrames = [self expireIFrames];///<  删除一个I帧（但一个I帧可能对应多个nal）
     self.lastDropFrames += [iFrames count];
     if (iFrames && iFrames.count > 0) {
-        [self.list removeObjectsInArray:iFrames];
+        @synchronized (self.mutableList) {
+          [self.mutableList removeObjectsInArray:iFrames];
+        }
         return;
     }
-    
-    [self.list removeAllObjects];
+
+    @synchronized (self.mutableList) {
+      [self.mutableList removeAllObjects];
+    }
 }
 
 - (NSArray *)expirePFrames {
@@ -173,11 +211,11 @@ NSInteger frameDataCompare(id obj1, id obj2, void *context){
 }
 
 #pragma mark -- Setter Getter
-- (NSMutableArray *)list {
-    if (!_list) {
-        _list = [[NSMutableArray alloc] init];
+- (NSMutableArray *)mutableList {
+    if (!_mutableList) {
+      _mutableList = [[NSMutableArray alloc] init];
     }
-    return _list;
+    return _mutableList;
 }
 
 - (NSMutableArray *)sortList {

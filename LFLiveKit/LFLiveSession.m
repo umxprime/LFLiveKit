@@ -403,6 +403,8 @@
     if (!_socket) {
         _socket = [[LFStreamRTMPSocket alloc] initWithStream:self.streamInfo reconnectInterval:self.reconnectInterval reconnectCount:self.reconnectCount];
         [_socket setDelegate:self];
+      _socket.dataDeliverySampleUpdateBlock = self.dataDeliverySampleUpdateBlock;
+      _socket.streamDataDeliveryUpdateInterval = self.dataDeliverySampleUpdateDesiredInterval;
     }
     return _socket;
 }

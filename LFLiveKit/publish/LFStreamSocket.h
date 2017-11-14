@@ -10,7 +10,7 @@
 #import "LFLiveStreamInfo.h"
 #import "LFStreamingBuffer.h"
 #import "LFLiveDebug.h"
-
+#import "LFLiveStreamDataDeliverySample.h"
 
 
 @protocol LFStreamSocket;
@@ -29,6 +29,8 @@
 
 @protocol LFStreamSocket <NSObject>
 @property (nonatomic, assign) NSUInteger latency;
+@property (nonatomic, copy) LFLiveStreamDataDeliverySampleUpdateBlock dataDeliverySampleUpdateBlock;
+@property (nonatomic, assign) NSTimeInterval streamDataDeliveryUpdateInterval;
 - (void)start;
 - (void)stop;
 - (void)sendFrame:(nullable LFFrame *)frame;

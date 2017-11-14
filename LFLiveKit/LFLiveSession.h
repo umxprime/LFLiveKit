@@ -15,7 +15,7 @@
 #import "LFLiveAudioConfiguration.h"
 #import "LFLiveVideoConfiguration.h"
 #import "LFLiveDebug.h"
-
+#import "LFLiveStreamDataDeliverySample.h"
 
 
 typedef NS_ENUM(NSInteger,LFLiveCaptureType) {
@@ -133,6 +133,21 @@ typedef NS_ENUM(NSInteger,LFLiveCaptureTypeMask) {
 
 /* The saveLocalVideoPath is save the local video  path */
 @property (nonatomic, strong, nullable) NSURL *saveLocalVideoPath;
+
+/**
+ * Desired time interval in seconds for streamDataDeliveryUpdateBlock calls.
+ * Calls can be delayed, depending on current network bandwidth.
+ * Always refer to LFLiveStreamDataDeliverySample timeInterval value to know
+ * proper elapsed time.
+ */
+@property(nonatomic, assign)
+    NSTimeInterval dataDeliverySampleUpdateDesiredInterval;
+
+/**
+ * Set this to receive data delivery infos.
+ */
+@property(nonatomic, copy)
+    LFLiveStreamDataDeliverySampleUpdateBlock dataDeliverySampleUpdateBlock;
 
 #pragma mark - Initializer
 ///=============================================================================
