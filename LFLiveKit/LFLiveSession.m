@@ -105,9 +105,9 @@
     [self.socket start];
 }
 
-- (void)stopLive {
+- (void)stopLive:(BOOL)flushPendingFrames completion:(void (^)())completion {
     self.uploading = NO;
-    [self.socket stop];
+    [self.socket stop:flushPendingFrames completion:completion];
     self.socket = nil;
 }
 

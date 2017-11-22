@@ -172,7 +172,7 @@ typedef NS_ENUM(NSInteger,LFLiveCaptureTypeMask) {
 - (void)startLive:(nonnull LFLiveStreamInfo *)streamInfo;
 
 /** The stop stream .*/
-- (void)stopLive;
+- (void)stopLive:(BOOL)flushPendingFrames completion:(void (^)())completion;
 
 /** support outer input yuv or rgb video(set LFLiveCaptureTypeMask) .*/
 - (void)pushVideo:(nullable CVPixelBufferRef)pixelBuffer;

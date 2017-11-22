@@ -32,7 +32,7 @@
 @property (nonatomic, copy) LFLiveStreamDataDeliverySampleUpdateBlock dataDeliverySampleUpdateBlock;
 @property (nonatomic, assign) NSTimeInterval streamDataDeliveryUpdateInterval;
 - (void)start;
-- (void)stop;
+- (void)stop:(BOOL)flushPendingFrames completion:(void (^)())completion;
 - (void)sendFrame:(nullable LFFrame *)frame;
 - (void)flushBuffer;
 - (void)setDelegate:(nullable id <LFStreamSocketDelegate>)delegate;

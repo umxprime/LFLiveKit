@@ -87,8 +87,8 @@ LFLiveKit
 	[self.session startLive:streamInfo];
 }
 
-- (void)stopLive {
-	[self.session stopLive];
+- (void)stopLiveWithCompletion: {
+	[self.session stopLiveWithCompletion:];
 }
 
 //MARK: - CallBack:
@@ -119,8 +119,8 @@ func startLive() -> Void {
 	session.startLive(stream)
 }
 
-func stopLive() -> Void {
-	session.stopLive()
+func stopLiveWithCompletion:() -> Void {
+	session.stopLiveWithCompletion:()
 }
 
 //MARK: - Callback
